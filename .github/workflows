@@ -1,29 +1,20 @@
-import os
-import requests
-import json
+name: Slack Notification
+on:
+  pull_request:
+    types: [opened, edited]
 
-# Obtém a URL do webhook do Slack a partir das secrets do GitHub
-slack_url = os.environ.get('SLACK_WEBHOOK_URL')
+jobs:
+  slack:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-# Obtém a palavra que será buscada a partir das secrets do GitHub
-search_word = os.environ.get('KEYWORD')
-
-# Obtém o token de acesso à API do GitHub a partir das secrets do GitHub
-github_token = os.environ.get('GITHUB_TOKEN')
-
-# Faz uma requisição para a API do GitHub para obter todos os PRs abertos
-headers = {
-    'Authorization': f'token {github_token}'
-}
-response = requests.get(f"https://api.github.com/repos/{os.environ.get('GITHUB_REPOSITORY')}/pulls?state=open", headers=headers)
-pr_data = json.loads(response.content)
-
-# Itera sobre cada PR e verifica se a palavra buscada está no título ou no corpo do PR
-for pr in pr_data:
-    if search_word in pr['title'] or search_word in pr['body']:
-        # Define a mensagem que será enviada para o Slack
-        message = {
-            'text': f"Novo PR encontrado: {pr['title']}\n{pr['html_url']}"
-        }
-        # Envia a mensagem para o webhook do Slack
-        response = requests.post(slack_url, data=json.dumps(message))
+      - name: Send notification to Slack
+        uses: rtCamp/action-slack-notify@v2.3
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_USERNAME: "GitHub Actions"
+          SLACK_MESSAGE: "Pull Request contém a palavra 'exemplo'"
+          SLACK_COLOR: "#36a64f"
+        if: ${{ github.event.pull_request.title =~ 'exemplo' }}
