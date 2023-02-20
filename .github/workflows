@@ -1,0 +1,30 @@
+name: Slack Notification on PR
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  slack_notification:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14.x'
+    - name: Install dependencies
+      run: npm install @slack/webhook
+    - name: Notify Slack
+      if: contains(github.event.pull_request.title, '${{ secrets.KEYWORD }}')
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      run: |
+        node -e "
+          const { IncomingWebhook } = require('@slack/webhook');
+          const webhook = new IncomingWebhook(process.env.SLACK_WEBHOOK_URL);
+          webhook.send({
+            text: 'Novo PR do projeto \"${{ secrets.KEYWORD }}\": ' + process.env.GITHUB_SERVER_URL + '/' + process.env.GITHUB_REPOSITORY + '/pull/' + process.env.GITHUB_EVENT_NUMBER + '\n\n' + process.env.GITHUB_EVENT_PULL_REQUEST_TITLE + '\n\n' + 'Por ' + process.env.GITHUB_EVENT_PULL_REQUEST_USER_LOGIN
+          });
+        "
