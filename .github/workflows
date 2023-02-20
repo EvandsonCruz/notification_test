@@ -1,27 +1,16 @@
-import os
-import requests
-import json
+name: Notify Slack on Pull Request
 
-# Obtém a URL do webhook do Slack a partir das secrets do GitHub
-slack_url = os.environ['SLACK_WEBHOOK_URL']
+on:
+  pull_request:
+    types: [opened]
 
-# Obtém a palavra específica a partir das secrets do GitHub
-search_word = os.environ['SEARCH_WORD']
-
-# Obtém o número do pull request a partir da payload do GitHub
-pr_number = os.environ['PULL_REQUEST_NUMBER']
-
-# Obtém o título e o corpo do pull request a partir da API do GitHub
-github_token = os.environ['GITHUB_TOKEN']
-headers = {'Authorization': f'token {github_token}'}
-response = requests.get(f'https://api.github.com/repos/{os.environ["GITHUB_REPOSITORY"]}/pulls/{pr_number}', headers=headers)
-pr_data = json.loads(response.content)
-
-# Verifica se a palavra específica está no título ou no corpo do pull request
-if search_word in pr_data['title'] or search_word in pr_data['body']:
-    # Define a mensagem que será enviada para o Slack
-    message = {
-        'text': f"Novo pull request encontrado: {pr_data['title']}\n{pr_data['html_url']}"
-    }
-    # Envia a mensagem para o webhook do Slack
-    response = requests.post(slack_url, data=json.dumps(message))
+jobs:
+  notify:
+    if: ${{ contains(github.event.pull_request.title, 'example') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack
+        uses: slack/webhook@v1
+        with:
+          url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          text: 'A pull request containing the word "example" has been opened!'
