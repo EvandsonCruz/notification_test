@@ -1,4 +1,4 @@
-name: Notify Slack on Pull Request
+name: Notify Slack for Pull Request
 
 on:
   pull_request:
@@ -6,11 +6,12 @@ on:
 
 jobs:
   notify:
-    if: ${{ contains(github.event.pull_request.title, 'example') }}
     runs-on: ubuntu-latest
+    if: "contains(github.event.pull_request.title, 'word')"
     steps:
       - name: Notify Slack
         uses: slack/webhook@v1
         with:
           url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          text: 'A pull request containing the word "example" has been opened!'
+          text: 'A new pull request containing the word "word" has been opened!'
+
