@@ -1,30 +1,29 @@
-name: Slack Notification on PR
+import os
+import requests
+import json
 
-on:
-  pull_request:
-    types: [opened]
+# Obtém a URL do webhook do Slack a partir das secrets do GitHub
+slack_url = os.environ.get('SLACK_WEBHOOK_URL')
 
-jobs:
-  slack_notification:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14.x'
-    - name: Install dependencies
-      run: npm install @slack/webhook
-    - name: Notify Slack
-      if: contains(github.event.pull_request.title, '${{ secrets.KEYWORD }}')
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      run: |
-        node -e "
-          const { IncomingWebhook } = require('@slack/webhook');
-          const webhook = new IncomingWebhook(process.env.SLACK_WEBHOOK_URL);
-          webhook.send({
-            text: 'Novo PR do projeto \"${{ secrets.KEYWORD }}\": ' + process.env.GITHUB_SERVER_URL + '/' + process.env.GITHUB_REPOSITORY + '/pull/' + process.env.GITHUB_EVENT_NUMBER + '\n\n' + process.env.GITHUB_EVENT_PULL_REQUEST_TITLE + '\n\n' + 'Por ' + process.env.GITHUB_EVENT_PULL_REQUEST_USER_LOGIN
-          });
-        "
+# Obtém a palavra que será buscada a partir das secrets do GitHub
+search_word = os.environ.get('KEYWORD')
+
+# Obtém o token de acesso à API do GitHub a partir das secrets do GitHub
+github_token = os.environ.get('GITHUB_TOKEN')
+
+# Faz uma requisição para a API do GitHub para obter todos os PRs abertos
+headers = {
+    'Authorization': f'token {github_token}'
+}
+response = requests.get(f"https://api.github.com/repos/{os.environ.get('GITHUB_REPOSITORY')}/pulls?state=open", headers=headers)
+pr_data = json.loads(response.content)
+
+# Itera sobre cada PR e verifica se a palavra buscada está no título ou no corpo do PR
+for pr in pr_data:
+    if search_word in pr['title'] or search_word in pr['body']:
+        # Define a mensagem que será enviada para o Slack
+        message = {
+            'text': f"Novo PR encontrado: {pr['title']}\n{pr['html_url']}"
+        }
+        # Envia a mensagem para o webhook do Slack
+        response = requests.post(slack_url, data=json.dumps(message))
