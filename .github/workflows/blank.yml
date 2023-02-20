@@ -18,7 +18,9 @@ jobs:
     if: "contains(github.event.pull_request.title, 'word')"
     steps:
       - name: Notify Slack
-        uses: slack/webhook@v1
+      - uses: craftech-io/slack-action@v1
         with:
-          url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          slack_channel: alerta
+          slack_username: Github
           text: 'A new pull request containing the word "word" has been opened!'
