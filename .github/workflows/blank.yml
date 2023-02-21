@@ -20,7 +20,7 @@ jobs:
       - name: Notify Slack
         uses: craftech-io/slack-action@v1
         with:
-          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          run: echo ${{ secrets.SLACK_WEBHOOK_URL }}
           slack_channel: alerta
           slack_username: Github
           text: 'A new pull request containing the word "word" has been opened!'
