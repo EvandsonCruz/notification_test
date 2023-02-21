@@ -18,7 +18,7 @@ jobs:
     if: "contains(github.event.pull_request.title, 'word')"
     steps:
       - name: Notify Slack
-        uses: slack/webhook@v2
+        uses: slack/webhook@v1
         env:
               SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
