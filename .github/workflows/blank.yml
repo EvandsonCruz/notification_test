@@ -19,6 +19,10 @@ jobs:
     steps:
       - name: Notify Slack
         uses: slack/webhook@v2
+        env:
+              SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         with:
-          url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          channel: '#alerta'
+          username: 'GitHub Actions'
+          icon_emoji: ':rocket:'
           text: 'A new pull request containing the word "word" has been opened!'
