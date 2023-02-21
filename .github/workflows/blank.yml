@@ -16,7 +16,8 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+       id-token: write
+       contents: read # default
     if: "contains(github.event.pull_request.title, 'word')"
     steps:
       - name: Notify Slack
